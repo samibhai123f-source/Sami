@@ -9,10 +9,21 @@ module.exports.config = {
     cooldowns: 5
 };
 
+// ১. ব্যাকগ্রাউন্ডে গ্রুপের থিম অটো-সেভ করার ইভেন্ট হ্যান্ডলার
+module.exports.handleEvent = async ({ api, event }) => {
+    const { threadID, logMessageType, logMessageData } = event;
+    if (logMessageType === "log:thread-color") {
+        if (!global.oldGroupData) global.oldGroupData = {};
+        global.oldGroupData[threadID] = {
+            themeID: logMessageData.theme_id || logMessageData.color_gradient
+        };
+    }
+};
+
+// ২. কমান্ড রান করার ফাংশন
 module.exports.run = async ({ api, event, args }) => {
     const { threadID, messageID } = event;
 
-    // গ্লোবাল অবজেক্টে আগের ডেটা সেভ করা আছে কিনা চেক করা
     if (!global.oldGroupData || !global.oldGroupData[threadID]) {
         return api.sendMessage("❌ এই গ্রুপের কোনো আগের থিমের ব্যাকআপ আমার কাছে নেই!", threadID, messageID);
     }
@@ -35,4 +46,3 @@ module.exports.run = async ({ api, event, args }) => {
         api.sendMessage("❌ কিছু একটা সমস্যা হয়েছে!", threadID, messageID);
     }
 };
-      

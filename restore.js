@@ -1,0 +1,34 @@
+module.exports = {
+  name: "restore", // কমান্ডের নাম (যেমন: !restore)
+  description: "গ্রুপের আগের থিম বা কভার পিক পুনরায় ফিরিয়ে আনে",
+  author: "Sami",
+  
+  run: async ({ api, event, args }) => {
+    const { threadID, messageID } = event;
+
+    // গ্লোবাল অবজেক্টে আগের ডেটা সেভ করা আছে কিনা চেক করা
+    if (!global.oldGroupData || !global.oldGroupData[threadID]) {
+      return api.sendMessage("❌ এই গ্রুপের কোনো আগের থিম বা কভারের ব্যাকআপ আমার কাছে নেই!", threadID, messageID);
+    }
+
+    const savedData = global.oldGroupData[threadID];
+
+    try {
+      // ১. যদি থিম রিস্টোর করতে হয়
+      if (savedData.themeID) {
+        api.changeThreadTheme(savedData.themeID, threadID, (err) => {
+          if (err) {
+            return api.sendMessage("⚠️ থিম রিস্টোর করতে সমস্যা হয়েছে!", threadID, messageID);
+          }
+          api.sendMessage("✅ গ্রুপের আগের থিম সফলভাবে ফিরিয়ে আনা হয়েছে!", threadID, messageID);
+        });
+      } else {
+        api.sendMessage("❌ রিস্টোর করার মতো কোনো থিম ডাটা পাওয়া যায়নি!", threadID, messageID);
+      }
+
+    } catch (error) {
+      console.error(error);
+      api.sendMessage("❌ কিছু একটা সমস্যা হয়েছে!", threadID, messageID);
+    }
+  }
+};
